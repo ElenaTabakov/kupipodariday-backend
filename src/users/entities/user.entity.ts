@@ -21,7 +21,7 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ unique: true, length: 30 })
+  @Column({ unique: true, length: 64 })
   username: string;
 
   @Column({ default: 'Пока ничего не рассказал о себе', length: 200 })
@@ -30,10 +30,10 @@ export class User {
   @Column({ default: 'https://i.pravatar.cc/300' })
   avatar: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, length: 255, default: 'user@yandex.ru' })
   email: string;
 
-  @Column()
+  @Column({ length: 255 })
   password: string;
 
   @OneToMany(() => Wish, (wish) => wish.owner)
