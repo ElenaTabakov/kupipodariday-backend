@@ -7,10 +7,14 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UseGuards,
+  Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -24,6 +28,22 @@ export class UsersController {
   @Get()
   findAll() {
     return this.usersService.findAll();
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getprofile(@Request() req) {
+    return req.user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async updateMe(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    if (!req.user?.userId) {
+      throw new NotFoundException('User not found in token');
+    }
+
+    const userId = req.user.userId;
+    return this.usersService.update({ id: userId }, updateUserDto);
   }
 
   @Get(':id')
