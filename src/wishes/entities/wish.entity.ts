@@ -23,7 +23,7 @@ export class Wish {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column()
+  @Column({ length: 250 })
   name: string;
 
   @Column()
@@ -35,18 +35,18 @@ export class Wish {
   @Column()
   price: number;
 
-  @Column()
+  @Column({ length: 1024 })
   description: string;
 
   @Column()
   raised: number;
+
+  @Column()
+  copied: number;
 
   @ManyToOne(() => User, (user) => user.wishes)
   owner: User;
 
   @OneToMany(() => Offer, (offer) => offer.item)
   offers: Offer[];
-
-  @ManyToMany(() => Wishlist, (wishlist) => wishlist.items)
-  wishlists: Wishlist[];
 }

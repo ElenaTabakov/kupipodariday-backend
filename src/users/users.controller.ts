@@ -51,6 +51,11 @@ export class UsersController {
     return { message: 'Profile updated successfully', user: userUpdated };
   }
 
+  @Get('find')
+  findMany(@Query('query') query: string) {
+    return this.usersService.findMany(query);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne({ id });
@@ -59,10 +64,5 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.removeOne({ id });
-  }
-
-  @Get('find')
-  findMany(@Query('query') query: string) {
-    return this.usersService.findMany(query);
   }
 }
