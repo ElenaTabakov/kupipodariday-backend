@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -43,7 +44,11 @@ export class UsersController {
     }
 
     const userId = req.user.userId;
-    return this.usersService.update({ id: userId }, updateUserDto);
+    const userUpdated = await this.usersService.updateOne(
+      { id: userId },
+      updateUserDto,
+    );
+    return { message: 'Profile updated successfully', user: userUpdated };
   }
 
   @Get(':id')
@@ -51,16 +56,13 @@ export class UsersController {
     return this.usersService.findOne({ id });
   }
 
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    return this.usersService.update({ id }, updateUserDto);
-  }
-
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.removeOne({ id });
+  }
+
+  @Get('find')
+  findMany(@Query('query') query: string) {
+    return this.usersService.findMany(query);
   }
 }

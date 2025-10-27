@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere, ILike } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -34,7 +34,7 @@ export class UsersService {
     return await this.usersRepository.findOne({ where: query });
   }
 
-  async update(
+  async updateOne(
     query: FindOptionsWhere<User>,
     updateUserDto: UpdateUserDto,
   ): Promise<User | null> {
@@ -55,5 +55,16 @@ export class UsersService {
   async removeOne(query: FindOptionsWhere<User>): Promise<boolean> {
     const result = await this.usersRepository.delete(query);
     return result.affected > 0;
+  }
+
+  async findMany(query: string) {
+    const users = await this.usersRepository.find({
+      where: [
+        { username: ILike(`%${query}%`) },
+        { email: ILike(`%${query}%`) },
+      ],
+    });
+
+    return users;
   }
 }
