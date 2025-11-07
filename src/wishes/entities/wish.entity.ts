@@ -32,13 +32,13 @@ export class Wish {
   @Column()
   image: string;
 
-  @Column()
+  @Column('decimal', { scale: 2 })
   price: number;
 
   @Column({ length: 1024 })
   description: string;
 
-  @Column()
+  @Column('decimal', { scale: 2, default: 0 })
   raised: number;
 
   @Column()

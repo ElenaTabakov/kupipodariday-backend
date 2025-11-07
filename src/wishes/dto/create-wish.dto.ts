@@ -18,9 +18,7 @@ export class CreateWishDto {
   @IsUrl()
   image: string;
 
-  @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
+  @IsNumber()
   price: number;
 
   @IsString()
