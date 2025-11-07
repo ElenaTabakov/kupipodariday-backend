@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wish } from './entities/wish.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -40,6 +40,18 @@ export class WishesService {
     });
   }
 
+  findMany(query: FindOptionsWhere<Wish>) {
+    return this.wishesRepository.find({
+      where: query,
+      relations: ['owner', 'offers'],
+    });
+  }
+  async findByIds(ids: number[]) {
+    return this.wishesRepository.find({
+      where: { id: In(ids) },
+      relations: ['owner', 'offers'],
+    });
+  }
   async updateOne(
     query: FindOptionsWhere<Wish>,
     updateWishDto: UpdateWishDto,

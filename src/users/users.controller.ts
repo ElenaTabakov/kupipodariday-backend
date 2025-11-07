@@ -16,10 +16,14 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { WishesService } from 'src/wishes/wishes.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly wishesService: WishesService,
+  ) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -51,9 +55,19 @@ export class UsersController {
     return { message: 'Profile updated successfully', user: userUpdated };
   }
 
-  @Get('find')
-  findMany(@Query('query') query: string) {
+  @UseGuards(JwtAuthGuard)
+  @Get('me/wishes')
+  getMyWishes(@Request() req) {
+    return this.wishesService.findMany({ owner: { id: req.user.userId } });
+  }
+
+  @Post('find')
+  findMany(@Body('query') query: string) {
     return this.usersService.findMany(query);
+  }
+  @Get(':username')
+  getByUsername(@Param('username') username: string) {
+    return this.usersService.findOne({ username });
   }
 
   @Get(':id')
