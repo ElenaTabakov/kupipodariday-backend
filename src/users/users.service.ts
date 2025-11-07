@@ -67,4 +67,17 @@ export class UsersService {
 
     return users;
   }
+  async findOneWithPassword(
+    query: FindOptionsWhere<User>,
+  ): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: query,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        password: true,
+      },
+    });
+  }
 }

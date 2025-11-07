@@ -12,23 +12,16 @@ export class AuthService {
   ) {}
 
   async signup(createUserDto: CreateUserDto) {
-    const { email, password, ...rest } = createUserDto;
+    const { email } = createUserDto;
 
     const existingUser = await this.usersService.findOne({ email });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    const saltrounds = 10; //hash
-    const hashedPassword = await bcrypt.hash(password, saltrounds);
+    const newUser = await this.usersService.create(createUserDto);
 
-    const newUser = await this.usersService.create({
-      ...rest,
-      email,
-      password: hashedPassword,
-    });
-
-    const { password: _, ...userWithoutPassword } = newUser;
+    const { password, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
   }
 
@@ -40,7 +33,7 @@ export class AuthService {
   }
 
   async validatePassword(username: string, password: string) {
-    const user = await this.usersService.findOne({ username });
+    const user = await this.usersService.findOneWithPassword({ username });
     if (!user) return null;
 
     const isMatch = await bcrypt.compare(password, user.password);

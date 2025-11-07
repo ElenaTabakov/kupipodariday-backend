@@ -1,34 +1,66 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  Request,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('offers')
 export class OffersController {
   constructor(private readonly offersService: OffersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createOfferDto: CreateOfferDto) {
-    return this.offersService.create(createOfferDto);
+  async create(@Request() req, @Body() dto: CreateOfferDto) {
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return await this.offersService.create(req.user.userId, dto);
   }
 
   @Get()
-  findAll() {
-    return this.offersService.findAll();
+  async findAll() {
+    return await this.offersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.offersService.findOne(+id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.offersService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOfferDto: UpdateOfferDto) {
-    return this.offersService.update(+id, updateOfferDto);
+  async update(
+    @Request() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateOfferDto,
+  ) {
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return await this.offersService.updateOne(id, req.user.userId, dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.offersService.remove(+id);
+  async remove(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return await this.offersService.removeOne(id, req.user.userId);
   }
 }

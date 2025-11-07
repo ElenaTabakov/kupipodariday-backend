@@ -5,12 +5,9 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
-  ParseIntPipe,
   UseGuards,
   Request,
   NotFoundException,
-  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -30,53 +27,44 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Post('find')
+  findMany(@Body('query') query: string) {
+    return this.usersService.findMany(query);
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getprofile(@Request() req) {
-    return req.user;
+  async getprofile(@Request() req) {
+    const user = await this.usersService.findOne({ id: req.user.userId });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   async updateMe(@Request() req, @Body() updateUserDto: UpdateUserDto) {
-    if (!req.user?.userId) {
-      throw new NotFoundException('User not found in token');
-    }
-
-    const userId = req.user.userId;
-    const userUpdated = await this.usersService.updateOne(
-      { id: userId },
-      updateUserDto,
-    );
-    return { message: 'Profile updated successfully', user: userUpdated };
+    return this.usersService.updateOne({ id: req.user.userId }, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me/wishes')
   getMyWishes(@Request() req) {
-    return this.wishesService.findMany({ owner: { id: req.user.userId } });
+    return this.wishesService.findMany({
+      owner: { id: req.user.userId },
+    });
   }
 
-  @Post('find')
-  findMany(@Body('query') query: string) {
-    return this.usersService.findMany(query);
-  }
   @Get(':username')
   getByUsername(@Param('username') username: string) {
     return this.usersService.findOne({ username });
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne({ id });
-  }
-
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.removeOne({ id });
+  @Get(':username/wishes')
+  getUserWishes(@Param('username') username: string) {
+    return this.wishesService.findMany({
+      owner: { username },
+    });
   }
 }

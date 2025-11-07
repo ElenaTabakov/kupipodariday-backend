@@ -26,9 +26,9 @@ export class Offer {
   @Column({ default: false })
   hidden: boolean;
 
-  @ManyToOne(() => User, (user) => user.offers)
+  @ManyToOne(() => User, (user) => user.offers, { onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Wish, (wish) => wish.offers)
+  @ManyToOne(() => Wish, (wish) => wish.offers, { onDelete: 'CASCADE' })
   item: Wish;
 }

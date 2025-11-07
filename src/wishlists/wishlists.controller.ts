@@ -2,18 +2,19 @@ import {
   Controller,
   Get,
   Post,
-  Patch,
-  Delete,
-  Param,
   Body,
-  UseGuards,
+  Patch,
+  Param,
+  Delete,
   ParseIntPipe,
+  UseGuards,
   Request,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { WishlistsService } from './wishlists.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('wishlists')
 export class WishlistsController {
@@ -21,33 +22,52 @@ export class WishlistsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Request() req, @Body() dto: CreateWishlistDto) {
-    return this.wishlistsService.create(req.user.userId, dto);
+  async create(@Request() req, @Body() createWishlistDto: CreateWishlistDto) {
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return await this.wishlistsService.create(
+      createWishlistDto,
+      req.user.userId,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.wishlistsService.findAll();
+  async findAll() {
+    return await this.wishlistsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.wishlistsService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.wishlistsService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
+  async update(
     @Request() req,
-    @Body() dto: UpdateWishlistDto,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateWishlistDto: UpdateWishlistDto,
   ) {
-    return this.wishlistsService.updateOne(id, req.user.userId, dto);
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return await this.wishlistsService.updateOne(
+      id,
+      req.user.userId,
+      updateWishlistDto,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.wishlistsService.removeOne(id, req.user.userId);
+  async remove(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return await this.wishlistsService.removeOne(id, req.user.userId);
   }
 }

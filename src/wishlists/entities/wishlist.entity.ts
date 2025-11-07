@@ -25,16 +25,16 @@ export class Wishlist {
   @Column({ length: 250 })
   name: string;
 
-  @Column({ length: 1500 })
+  @Column({ length: 1024 })
   description: string;
 
   @Column()
   image: string;
 
-  @ManyToMany(() => Wish)
-  @JoinTable()
-  items: Wish[];
-
   @ManyToOne(() => User, (user) => user.wishlists)
   owner: User;
+
+  @ManyToMany(() => Wish, (wish) => wish.wishlists)
+  @JoinTable()
+  items: Wish[];
 }

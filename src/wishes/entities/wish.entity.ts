@@ -32,16 +32,16 @@ export class Wish {
   @Column()
   image: string;
 
-  @Column('decimal', { scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
   @Column({ length: 1024 })
   description: string;
 
-  @Column('decimal', { scale: 2, default: 0 })
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   raised: number;
 
-  @Column()
+  @Column({ default: 0 })
   copied: number;
 
   @ManyToOne(() => User, (user) => user.wishes)
@@ -49,4 +49,7 @@ export class Wish {
 
   @OneToMany(() => Offer, (offer) => offer.item)
   offers: Offer[];
+
+  @ManyToMany(() => Wishlist, (wishlist) => wishlist.items)
+  wishlists: Wishlist[];
 }

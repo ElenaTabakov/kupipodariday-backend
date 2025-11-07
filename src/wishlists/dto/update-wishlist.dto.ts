@@ -9,6 +9,11 @@ export class UpdateWishlistDto extends PartialType(CreateWishlistDto) {
   name?: string;
 
   @IsOptional()
+  @IsString()
+  @Length(1, 1024)
+  description?: string;
+
+  @IsOptional()
   @IsUrl()
   image?: string;
 

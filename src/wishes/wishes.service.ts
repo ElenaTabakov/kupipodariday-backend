@@ -19,23 +19,31 @@ export class WishesService {
   ) {}
 
   async create(createWishDto: CreateWishDto, owner: User) {
-    const wish = this.wishesRepository.create({
+    const newWish = this.wishesRepository.create({
       ...createWishDto,
       owner,
+      copied: 0,
+      raised: 0,
     });
 
-    return this.wishesRepository.save(wish);
+    return this.wishesRepository.save(newWish);
+  }
+
+  async findOne(query: FindOptionsWhere<Wish>) {
+    const wish = await this.wishesRepository.findOne({
+      where: query,
+      relations: ['owner', 'offers'],
+    });
+
+    if (!wish) {
+      throw new NotFoundException('Wish not found');
+    }
+
+    return wish;
   }
 
   findAll() {
     return this.wishesRepository.find({
-      relations: ['owner', 'offers'],
-    });
-  }
-
-  findOne(query: FindOptionsWhere<Wish>) {
-    return this.wishesRepository.findOne({
-      where: query,
       relations: ['owner', 'offers'],
     });
   }
@@ -46,42 +54,99 @@ export class WishesService {
       relations: ['owner', 'offers'],
     });
   }
+
   async findByIds(ids: number[]) {
     return this.wishesRepository.find({
       where: { id: In(ids) },
       relations: ['owner', 'offers'],
     });
   }
+
+  async findLast() {
+    return await this.wishesRepository.find({
+      order: { createdAt: 'DESC' },
+      take: 40,
+      relations: ['owner', 'offers'],
+    });
+  }
+
+  async findTop() {
+    return await this.wishesRepository.find({
+      order: { copied: 'DESC' },
+      take: 20,
+      relations: ['owner', 'offers'],
+    });
+  }
+
   async updateOne(
     query: FindOptionsWhere<Wish>,
     updateWishDto: UpdateWishDto,
     userId: number,
   ) {
-    const wish = await this.wishesRepository.findOne({
-      where: query,
-    });
-    if (!wish) throw new NotFoundException('Wish not found');
+    const wish = await this.findOne(query);
 
-    if (wish.owner.id !== userId)
+    if (wish.owner.id !== userId) {
       throw new ForbiddenException('You are not the owner of this wish');
+    }
 
-    if (wish.offers?.length > 0 && updateWishDto['price']) {
+    if ('raised' in updateWishDto) {
+      delete updateWishDto.raised;
+    }
+
+    if (wish.offers?.length > 0 && updateWishDto.price) {
       throw new BadRequestException('Cannot change price after offers exist');
     }
 
     Object.assign(wish, updateWishDto);
-    return await this.wishesRepository.save(wish);
+    return this.wishesRepository.save(wish);
   }
 
   async removeOne(query: FindOptionsWhere<Wish>, userId: number) {
-    const wish = await this.wishesRepository.findOne({
-      where: query,
-    });
-    if (!wish) throw new NotFoundException('Wish not found');
+    const wish = await this.findOne(query);
 
-    if (wish.owner.id !== userId)
+    if (wish.owner.id !== userId) {
       throw new ForbiddenException('You are not the owner of this wish');
+    }
 
-    return await this.wishesRepository.remove(wish);
+    return this.wishesRepository.remove(wish);
+  }
+
+  async increaseRaised(id: number, amount: number): Promise<Wish> {
+    const result = await this.wishesRepository.increment(
+      { id },
+      'raised',
+      amount,
+    );
+
+    if (!result.affected) {
+      throw new NotFoundException('Wish not found');
+    }
+
+    return this.findOne({ id });
+  }
+
+  async copyWish(id: number, user: User) {
+    const wish = await this.findOne({ id });
+
+    if (wish.owner.id === user.id) {
+      throw new BadRequestException('You cannot copy your own wish');
+    }
+
+    const newWish = this.wishesRepository.create({
+      name: wish.name,
+      link: wish.link,
+      image: wish.image,
+      price: wish.price,
+      description: wish.description,
+      owner: user,
+      copied: 0,
+      raised: 0,
+    });
+
+    await this.wishesRepository.save(newWish);
+
+    await this.wishesRepository.increment({ id }, 'copied', 1);
+
+    return newWish;
   }
 }
