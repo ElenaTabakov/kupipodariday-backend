@@ -12,7 +12,6 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
-
   async create(createUserDto: CreateUserDto): Promise<User> {
     if (createUserDto.password) {
       const saltRounds = 10;

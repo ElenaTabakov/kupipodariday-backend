@@ -21,8 +21,10 @@ export class AuthService {
 
     const newUser = await this.usersService.create(createUserDto);
 
-    const { password, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
+    // const { password, ...userWithoutPassword } = newUser;
+    delete newUser.password;
+
+    return newUser;
   }
 
   async login(user: any) {
@@ -39,7 +41,7 @@ export class AuthService {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return null;
 
-    const { password: _, ...result } = user;
-    return result;
+    delete user.password;
+    return user;
   }
 }
