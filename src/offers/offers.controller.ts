@@ -29,12 +29,12 @@ export class OffersController {
 
     return await this.offersService.create(req.user.userId, dto);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll() {
     return await this.offersService.findAll();
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.offersService.findOne(id);

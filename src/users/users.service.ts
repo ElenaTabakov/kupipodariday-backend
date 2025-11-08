@@ -12,6 +12,16 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
+
+  private sanitizeUser(user: User) {
+    if (!user) return null;
+
+    const safeUser = { ...user };
+    delete safeUser.password;
+
+    return safeUser;
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     if (createUserDto.password) {
       const saltRounds = 10;
@@ -26,11 +36,13 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return await this.usersRepository.find();
+    const users = await this.usersRepository.find();
+    return users.map((user) => this.sanitizeUser(user));
   }
 
   async findOne(query: FindOptionsWhere<User>): Promise<User | null> {
-    return await this.usersRepository.findOne({ where: query });
+    const user = await this.usersRepository.findOne({ where: query });
+    return this.sanitizeUser(user);
   }
 
   async updateOne(
@@ -64,8 +76,9 @@ export class UsersService {
       ],
     });
 
-    return users;
+    return users.map((user) => this.sanitizeUser(user));
   }
+
   async findOneWithPassword(
     query: FindOptionsWhere<User>,
   ): Promise<User | null> {

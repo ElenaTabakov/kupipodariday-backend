@@ -34,6 +34,7 @@ export class WishesController {
     return this.wishesService.create(dto, owner);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.wishesService.findAll();
@@ -49,6 +50,7 @@ export class WishesController {
     return this.wishesService.findTop();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.wishesService.findOne({ id });

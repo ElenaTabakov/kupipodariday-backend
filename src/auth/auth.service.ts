@@ -12,19 +12,18 @@ export class AuthService {
   ) {}
 
   async signup(createUserDto: CreateUserDto) {
-    const { email } = createUserDto;
+    try {
+      const newUser = await this.usersService.create(createUserDto);
 
-    const existingUser = await this.usersService.findOne({ email });
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      delete newUser.password;
+
+      return newUser;
+    } catch (err) {
+      if (err.code === '23505') {
+        throw new ConflictException('User already exists');
+      }
+      throw err;
     }
-
-    const newUser = await this.usersService.create(createUserDto);
-
-    // const { password, ...userWithoutPassword } = newUser;
-    delete newUser.password;
-
-    return newUser;
   }
 
   async login(user: any) {

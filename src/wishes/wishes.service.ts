@@ -128,10 +128,6 @@ export class WishesService {
   async copyWish(id: number, user: User) {
     const wish = await this.findOne({ id });
 
-    if (wish.owner.id === user.id) {
-      throw new BadRequestException('You cannot copy your own wish');
-    }
-
     const newWish = this.wishesRepository.create({
       name: wish.name,
       link: wish.link,

@@ -22,11 +22,13 @@ export class UsersController {
     private readonly wishesService: WishesService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('find')
   findMany(@Body('query') query: string) {
     return this.usersService.findMany(query);
@@ -56,11 +58,13 @@ export class UsersController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':username')
   getByUsername(@Param('username') username: string) {
     return this.usersService.findOne({ username });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':username/wishes')
   getUserWishes(@Param('username') username: string) {
     return this.wishesService.findMany({
